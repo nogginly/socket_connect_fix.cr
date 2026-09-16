@@ -18,7 +18,7 @@ require "socket"
 # Compile with `-Dsocket_connect_fix_disabled` to leave `Socket#connect`
 # untouched, e.g. to check whether the underlying Crystal bug is still present.
 module SocketConnectFix
-  VERSION = "0.1.0"
+  VERSION = {{ `shards version #{__DIR__}`.chomp.stringify }}
 
   {% if flag?(:darwin) || flag?(:bsd) %}
     SO_ERROR = 0x1007
