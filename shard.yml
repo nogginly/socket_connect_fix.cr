@@ -1,5 +1,5 @@
 name: socket_connect_fix
-version: 0.1.0
+version: 0.1.1
 authors:
   - nogginly <nogginly@icloud.com>
 
@@ -12,6 +12,6 @@ description: |
   SO_ERROR (e.g. ECONNREFUSED on macOS), so Crystal's multi-address fallback
   works and refused connections raise Socket::ConnectError.
 
-crystal: ">= 1.15.0, < 2.0.0"
+crystal: ">= 1.20.0, < 2.0.0"
 
 license: MIT

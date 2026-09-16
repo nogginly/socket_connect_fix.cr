@@ -1,0 +1,57 @@
+name: Upstream bug canary
+
+# Checks weekly whether the connect bug still reproduces without the fix.
+# macOS 26.7 and later is expected to reproduce it; earlier versions are not.
+# The job fails only when reality differs from that expectation, which means
+# Crystal fixed it upstream, Apple changed the kernel again, or the version
+# boundary is wrong. The job summary records what was observed either way.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  canary:
+    runs-on: macos-26
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Compare observed behaviour with expectation
+        shell: bash
+        run: |
+          macos=$(sw_vers -productVersion)
+          crystal=$(crystal eval 'print Crystal::VERSION')
+
+          if [ "$(printf '%s\n' 26.7 "$macos" | sort -V | head -1)" = "26.7" ]; then
+            expected=yes
+          else
+            expected=no
+          fi
+
+          if crystal spec -Dsocket_connect_fix_disabled --example "port is closed"; then
+            observed=no
+          else
+            observed=yes
+          fi
+
+          {
+            echo "| macOS | kernel | Crystal | bug expected | bug observed |"
+            echo "|---|---|---|---|---|"
+            echo "| $macos | $(uname -r) | $crystal | $expected | $observed |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$expected" != "$observed" ]; then
+            if [ "$expected" = yes ]; then
+              echo "::error::Bug not reproduced on macOS $macos with Crystal $crystal: fixed upstream or by Apple? Consider retiring the shard."
+            else
+              echo "::error::Bug reproduced on macOS $macos, which predates 26.7: the version boundary is wrong."
+            fi
+            exit 1
+          fi

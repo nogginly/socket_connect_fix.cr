@@ -14,8 +14,11 @@ require "socket"
 #
 # Applies to every `TCPSocket`, including those created by `HTTP::Client` and
 # database drivers. Has no effect on Windows.
+#
+# Compile with `-Dsocket_connect_fix_disabled` to leave `Socket#connect`
+# untouched, e.g. to check whether the underlying Crystal bug is still present.
 module SocketConnectFix
-  VERSION = "0.1.0"
+  VERSION = {{ `shards version #{__DIR__}`.chomp.stringify }}
 
   {% if flag?(:darwin) || flag?(:bsd) %}
     SO_ERROR = 0x1007
@@ -38,7 +41,7 @@ module SocketConnectFix
   end
 end
 
-{% if flag?(:unix) %}
+{% if flag?(:unix) && !flag?(:socket_connect_fix_disabled) %}
   class Socket
     def connect(addr, timeout = nil, &)
       failed = false

@@ -16,6 +16,7 @@ jobs:
           - { os: ubuntu-latest, crystal: latest }
           - { os: macos-latest, crystal: "1.20" }
           - { os: macos-latest, crystal: latest }
+          - { os: macos-26, crystal: latest }
           - { os: windows-latest, crystal: "1.20" }
 
     runs-on: ${{ matrix.os }}

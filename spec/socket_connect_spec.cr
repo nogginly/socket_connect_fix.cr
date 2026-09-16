@@ -39,21 +39,11 @@ describe SocketConnectFix do
     server.try &.close
   end
 
-  {% if flag?(:windows) %}
-    it "reports connection error (Windows)" do
-      expect_raises(Socket::ConnectError) do
-        TCPSocket.new("10.255.255.1", 81, connect_timeout: 0.2)
-      end
-    end
-
-    pending "reports timeouts unchanged (Unix)" do; end
-  {% else %}
-    it "reports timeouts unchanged (Unix)" do
-      expect_raises(IO::TimeoutError) do
-        TCPSocket.new("10.255.255.1", 81, connect_timeout: 0.2)
-      end
-    end
-
-    pending "reports connection error (Windows)" do; end
-  {% end %}
+  it "reports timeouts unchanged" do
+    TCPSocket.new("10.255.255.1", 81, connect_timeout: 0.2).close
+    fail "expected the connection attempt to fail"
+  rescue ex : IO::TimeoutError
+  rescue ex : Socket::ConnectError
+    pending!("10.255.255.1 is not blackholed on this network: #{ex.message}")
+  end
 end
