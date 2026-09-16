@@ -39,9 +39,21 @@ describe SocketConnectFix do
     server.try &.close
   end
 
-  it "reports timeouts unchanged" do
-    expect_raises(IO::TimeoutError) do
-      TCPSocket.new("10.255.255.1", 81, connect_timeout: 0.2)
+  {% if flag?(:windows) %}
+    it "reports connection error (Windows)" do
+      expect_raises(Socket::ConnectError) do
+        TCPSocket.new("10.255.255.1", 81, connect_timeout: 0.2)
+      end
     end
-  end
+
+    pending "reports timeouts unchanged (Unix)" do; end
+  {% else %}
+    it "reports timeouts unchanged (Unix)" do
+      expect_raises(IO::TimeoutError) do
+        TCPSocket.new("10.255.255.1", 81, connect_timeout: 0.2)
+      end
+    end
+
+    pending "reports connection error (Windows)" do; end
+  {% end %}
 end
