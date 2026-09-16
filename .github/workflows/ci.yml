@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, crystal: "1.20" }
+          - { os: ubuntu-latest, crystal: latest }
+          - { os: macos-latest, crystal: "1.20" }
+          - { os: macos-latest, crystal: latest }
+          - { os: windows-latest, crystal: "1.20" }
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: ${{matrix.crystal}}
+      - name: Cache shards
+        uses: actions/cache@v5
+        with:
+          path: |
+            lib
+            bin/ameba*
+          key: ${{ runner.os }}-shards-${{ hashFiles('**/shard.lock') }}
+
+      - name: Install shards
+        run: shards check || shards install
+
+      # ---- Build debug release and check code quality on one platform
+
+      - name: Run tests
+        run: crystal spec
