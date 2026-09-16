@@ -17,7 +17,7 @@ This shard checks `SO_ERROR` after connect and reports failures as
 ```yaml
 dependencies:
   socket_connect_fix:
-    github: <owner>/socket_connect_fix
+    github: nogginly/socket_connect_fix
 ```
 
 ## Usage
