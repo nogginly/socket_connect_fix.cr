@@ -1,4 +1,4 @@
-# Disclosure for Liaison
+# Disclosure for `socket_connect_fix`
 
 ## AI Usage
 
