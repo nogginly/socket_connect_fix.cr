@@ -32,8 +32,8 @@ drivers. Libraries should not require it; applications opt in.
 
 ## Compatibility
 
-Tested against Crystal 1.21.0 on Linux (polling event loop). Unix only; a no-op
-on Windows. It redefines `Socket#connect(addr, timeout, &)` and relies on that
+CI runs the specs with Crystal 1.20 and the latest release on Linux and macOS,
+and 1.20 on Windows. The fix applies on Unix only; it is a no-op on Windows. It redefines `Socket#connect(addr, timeout, &)` and relies on that
 signature. Re-run the specs when upgrading Crystal, and remove the shard once
 the upstream fix ships.
 
@@ -42,6 +42,7 @@ the upstream fix ships.
 ```sh
 crystal spec
 crystal spec -Devloop=libevent
+crystal spec -Dsocket_connect_fix_disabled   # on macOS, closed-port specs should fail
 ```
 
 ## Contributions, by invitation!
