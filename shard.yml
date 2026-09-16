@@ -1,0 +1,17 @@
+name: socket_connect_fix
+version: 0.1.0
+authors:
+  - nogginly <nogginly@icloud.com>
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+
+description: |
+  Makes Socket#connect report connection failures that the kernel defers to
+  SO_ERROR (e.g. ECONNREFUSED on macOS), so Crystal's multi-address fallback
+  works and refused connections raise Socket::ConnectError.
+
+crystal: ">= 1.15.0, < 2.0.0"
+
+license: MIT
