@@ -16,6 +16,7 @@ jobs:
           - { os: ubuntu-latest, crystal: latest }
           - { os: macos-latest, crystal: "1.20" }
           - { os: macos-latest, crystal: latest }
+          - { os: macos-26, crystal: latest }
           - { os: windows-latest, crystal: "1.20" }
 
     runs-on: ${{ matrix.os }}
@@ -43,24 +44,3 @@ jobs:
 
       - name: Run tests
         run: crystal spec
-
-  upstream-bug-canary:
-    # Passes while Crystal still has the bug on macOS. Fails once upstream
-    # reports refused connections itself, signalling this shard can be retired.
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Install Crystal
-        uses: crystal-lang/install-crystal@v1
-        with:
-          crystal: latest
-
-      - name: Closed-port spec must fail without the fix
-        shell: bash
-        run: |
-          if crystal spec -Dsocket_connect_fix_disabled --example "port is closed"; then
-            echo "::error::Bug not reproduced without the fix; Crystal may have fixed it upstream."
-            exit 1
-          fi
