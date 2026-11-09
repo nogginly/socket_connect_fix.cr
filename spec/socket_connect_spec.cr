@@ -8,7 +8,17 @@ private def closed_port(host) : Int32
   port
 end
 
+# These specs assert the behaviour applications depend on, whether it comes
+# from this shard or from Crystal itself, so they pass on every supported
+# version.
 describe SocketConnectFix do
+  it "reports the Crystal release that makes the shard inert" do
+    SocketConnectFix::FIXED_IN.should_not be_empty
+    {% if compare_versions(Crystal::VERSION, SocketConnectFix::FIXED_IN) >= 0 %}
+      puts "  (Crystal #{Crystal::VERSION} has the upstream fix; the patch is not compiled in.)"
+    {% end %}
+  end
+
   it "raises Socket::ConnectError when the port is closed" do
     port = closed_port("127.0.0.1")
     expect_raises(Socket::ConnectError) do
