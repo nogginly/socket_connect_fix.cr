@@ -1,5 +1,9 @@
 # socket_connect_fix
 
+> **Fixed upstream in Crystal 1.22.2.** On that release and later this shard
+> compiles to nothing and prints a note on build. It remains available for
+> projects still on an older Crystal; remove it once you have migrated.
+
 On macOS (and possibly other BSD-derived systems), Crystal's `Socket#connect`
 can report a refused connection as successful. The refusal is only visible in
 the kernel's `SO_ERROR`, which Crystal does not read. Consequences:
@@ -11,6 +15,15 @@ the kernel's `SO_ERROR`, which Crystal does not read. Consequences:
 
 This shard checks `SO_ERROR` after connect and reports failures as
 `Socket::ConnectError`, so Crystal's existing address fallback works.
+
+## Background
+
+The kernel change arrived in macOS 26.7. A refused connection still sets
+`SO_ERROR` to `ECONNREFUSED`, but a second `connect()` on the same socket now
+answers `EISCONN` instead of repeating the error, and Crystal read that as
+success. Blocking `connect()` was never affected. Confirmed on three Macs,
+including one tested either side of the update, and absent on macOS 26.6.2 and
+on Linux. Fixed upstream by crystal-lang/crystal#17436.
 
 ## Installation
 
@@ -32,18 +45,25 @@ drivers. Libraries should not require it; applications opt in.
 
 ## Compatibility
 
+The patch is compiled in only on Crystal releases before 1.22.2, and on Unix
+only. Elsewhere the shard is inert, so it is safe to keep in `shard.yml` while
+a project migrates. It redefines `Socket#connect(addr, timeout, &)` and relies
+on that signature.
+
 CI runs the specs with Crystal 1.20 and the latest release on Linux and macOS,
-and 1.20 on Windows. The fix applies on Unix only; it is a no-op on Windows. It redefines `Socket#connect(addr, timeout, &)` and relies on that
-signature. Re-run the specs when upgrading Crystal, and remove the shard once
-the upstream fix ships.
+and 1.20 on Windows. The specs assert the behaviour applications depend on, so
+they pass whether it comes from this shard or from Crystal itself.
 
 ## Development
 
 ```sh
 crystal spec
 crystal spec -Devloop=libevent
-crystal spec -Dsocket_connect_fix_disabled   # on macOS, closed-port specs should fail
+crystal spec -Dsocket_connect_fix_disabled   # before 1.22.2 on macOS, closed-port specs should fail
 ```
+
+`-Dsocket_connect_fix_quiet` silences the build-time note on Crystal 1.22.2
+and later.
 
 ## Contributions, by invitation!
 

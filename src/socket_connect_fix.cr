@@ -15,10 +15,18 @@ require "socket"
 # Applies to every `TCPSocket`, including those created by `HTTP::Client` and
 # database drivers. Has no effect on Windows.
 #
+# The patch is applied only on Crystal releases that still carry the bug. From
+# `SocketConnectFix::FIXED_IN` onwards it compiles to nothing and prints a note
+# saying the shard can be removed; `-Dsocket_connect_fix_quiet` silences it.
+#
 # Compile with `-Dsocket_connect_fix_disabled` to leave `Socket#connect`
 # untouched, e.g. to check whether the underlying Crystal bug is still present.
 module SocketConnectFix
   VERSION = {{ `shards version #{__DIR__}`.chomp.stringify }}
+
+  # First Crystal release whose own `Socket#connect` reports these failures,
+  # making this shard unnecessary.
+  FIXED_IN = "1.22.2"
 
   {% if flag?(:darwin) || flag?(:bsd) %}
     SO_ERROR = 0x1007
@@ -41,7 +49,11 @@ module SocketConnectFix
   end
 end
 
-{% if flag?(:unix) && !flag?(:socket_connect_fix_disabled) %}
+{% if compare_versions(Crystal::VERSION, SocketConnectFix::FIXED_IN) >= 0 %}
+  {% unless flag?(:socket_connect_fix_quiet) %}
+    {% puts "socket_connect_fix: Crystal #{Crystal::VERSION.id} fixes this upstream; the shard is inert and can be removed. Pass -Dsocket_connect_fix_quiet to silence this." %}
+  {% end %}
+{% elsif flag?(:unix) && !flag?(:socket_connect_fix_disabled) %}
   class Socket
     def connect(addr, timeout = nil, &)
       failed = false
